@@ -1,37 +1,67 @@
-# 🥇 S.I.G. Riego Pro: Planificador Hídrico Inteligente
+# 💧 S.I.G. Riego Pro (Sistema Integral de Gestión de Riego)
 
-Este repositorio contiene una herramienta avanzada de **ingeniería agronómica** diseñada para optimizar el uso del agua en cultivos leñosos. El sistema cruza datos climáticos históricos de **AEMET** con coeficientes de cultivo específicos para generar planes de riego precisos, incluso bajo restricciones de recursos hídricos.
+**Versión 1.0 (Estable)**
+
+Una herramienta web avanzada de ingeniería agronómica diseñada para el cálculo, planificación y gestión eficiente de recursos hídricos en agricultura. Transforma datos climáticos históricos en planes de riego operativos, aplicando normativas internacionales (USDA, FAO) y lógica de balance hídrico neto.
+
+---
 
 ## 🚀 Funcionalidades Clave
 
-* **📍 Localización Geodésica**: Buscador de estaciones meteorológicas AEMET por coordenadas $XY$, calculando la distancia real en kilómetros mediante trigonometría esférica.
-* **📊 Modelo Predictivo**: El sistema analiza los últimos 36 meses de datos históricos para generar un "Mes Tipo" de referencia basado en la media de Evapotranspiración (ETo) o Evaporación.
-* **📅 Prorrateo Diario de Ciclo**: Permite definir fechas de inicio y fin de campaña exactas. La herramienta calcula el consumo proporcional según los días activos de cada mes (ajustando automáticamente meses de 28, 30 y 31 días).
-* **🥇 Medalla de Oro Agronómica (Riego Deficitario)**: Lógica de prorrateo de dotación. Si el agua disponible es inferior a la demanda ideal, el sistema redistribuye los recursos de forma proporcional a la curva de necesidad del árbol, priorizando los momentos de máxima demanda.
-* **🌳 Gestión de Dormancia**: Integración de una tabla maestra de $K_c$ para 25 tipos de frutales leñosos, aplicando consumo cero ($K_c=0$) en periodos de parada vegetativa (D).
-* **🔍 Compatibilidad Multi-Variable**: Algoritmo de detección inteligente que procesa variables de AEMET como `eto_mes`, `evap_mes` o la evaporación directa `e`.
+### 📍 1. Geolocalización y Climatología
+* **Búsqueda Geoespacial:** Algoritmo que identifica automáticamente la estación meteorológica (AEMET) más cercana a las coordenadas exactas de la parcela (Lat/Lon).
+* **Procesamiento de Datos:** Ingesta de archivos JSON (formato **AEMET OpenData**) con capacidad de procesar series históricas completas (medias aritméticas de todos los años disponibles) para obtener valores robustos de **ET<sub>0</sub>** (Evapotranspiración de Referencia) y **P** (Precipitación).
 
+### 🥇 2. Balance Hídrico Mensual (Agronómico)
+El núcleo del sistema se basa en la metodología del **Riego Neto**:
+* **Cálculo de ET<sub>c</sub>:** Transformación de la ET<sub>0</sub> climática mediante Coeficientes de Cultivo (**K<sub>c</sub>**) dinámicos para obtener la demanda bruta.
+* **Precipitación Efectiva (P<sub>e</sub>):** Implementación del **Método USDA (SCS)** modificado para calcular la lluvia útil aprovechable por el cultivo:
+    * *Si P < 70mm:* `P<sub>e</sub> = 0.6 · P - 10`
+    * *Si P > 70mm:* `P<sub>e</sub> = 0.8 · P - 24`
+* **Necesidad Neta (NH<sub>n</sub>):** Cálculo del déficit real del cultivo (`ET<sub>c</sub> - P<sub>e</sub>`).
+* **Gestión de Recursos:** Algoritmo de reparto proporcional (Estrategia de Riego Deficitario Controlado) que ajusta la dotación final si el volumen disponible es inferior a la demanda ideal.
 
+### 📅 3. Planificación Operativa Semanal
+* **Flujo Continuo:** Conversión de la planificación mensual a semanas naturales del año (ISO 8601).
+* **Distribución Diaria:** Lógica de interpolación diaria que evita los "escalones" o cortes artificiales entre meses, generando una curva de riego suave, continua y agronómicamente viable.
 
-## 📐 Lógica Matemática
-
-El sistema opera bajo las siguientes fórmulas de precisión:
-
-1.  **Necesidad Ideal ($ET_c$):**
-    $$ET_c (mm) = K_c(mes) \cdot \left( \frac{ETo_{mensual}}{días_{mes}} \cdot días_{activos} \right)$$
-
-2.  **Conversión a Volumen:**
-    $$V (m^3/ha) = ET_c (mm) \cdot 10$$
-
-3.  **Prorrateo de Recursos (Riego Ajustado):**
-    $$Riego_{mes} = \left( \frac{ETc_{mes}}{\sum ETc_{ciclo}} \right) \cdot Volumen_{Disponible}$$
-
-## 🛠️ Stack Tecnológico
-
-* **Frontend**: HTML5, CSS3 (Flexbox/Grid), JavaScript (ES6+).
-* **Gráficos**: [Chart.js](https://www.chartjs.org/) para la visualización de balances.
-* **Procesamiento de Datos**: [SheetJS (XLSX)](https://sheetjs.com/) para exportación de informes profesionales.
-* **API**: Integración de datos desde AEMET OpenData.
+### 📊 4. Visualización y Reporting
+* **Dashboard Interactivo:** Gráficos profesionales (Chart.js) con diseño optimizado:
+    * **Azul Cielo (`#38bdf8`):** Precipitación Efectiva (P<sub>e</sub>).
+    * **Azul Real (`#2563eb`):** Necesidad Neta (NH<sub>n</sub>).
+    * **Oro/Ámbar (`#d97706`):** Riego Asignado (Recurso Humano).
+* **Exportación de Datos:** Generación automática de informes en Excel (`.xlsx`) con tablas detalladas (Balance Mensual y Plan Semanal) para el cuaderno de campo.
 
 ---
-*Desarrollado para la gestión eficiente del agua y la agricultura de precisión.*
+
+## 📐 Lógica Matemática del Balance
+
+El sistema basa sus decisiones en el siguiente flujo de cálculo secuencial:
+
+1.  **Demanda del Cultivo (ET<sub>c</sub>):**
+    `ET<sub>c</sub> = ET<sub>0</sub> × K<sub>c</sub>`
+
+2.  **Lluvia Útil (P<sub>e</sub> - Método USDA):**
+    Se aplica la fórmula condicional sobre la precipitación media mensual (P) para descontar escorrentía y percolación profunda.
+
+3.  **Necesidad Hídrica Neta (NH<sub>n</sub>):**
+    `NH<sub>n</sub> = Max(0, ET<sub>c</sub> - P<sub>e</sub>)`
+
+4.  **Factor de Déficit (K<sub>s</sub>):**
+    `K<sub>s</sub> = Volumen Disponible / Σ NH<sub>n</sub>`
+
+5.  **Riego Final Asignado:**
+    `Riego = NH<sub>n</sub> × K<sub>s</sub>`
+
+---
+
+## 🛠️ Tecnologías y Diseño
+
+* **Frontend:** HTML5, CSS3 (Diseño "Clean Card"), Vanilla JavaScript (ES6+).
+* **Motor Gráfico:** Chart.js + Plugin DataLabels (Estilo personalizado con tooltips modernos).
+* **Motor de Datos:** SheetJS (XLSX) para la generación de hojas de cálculo.
+* **UX:** Interfaz reactiva con feedback visual inmediato y validación de datos de entrada.
+
+---
+
+> **Nota:** Este proyecto ha sido desarrollado siguiendo estrictos criterios agronómicos para ofrecer una herramienta de precisión a técnicos y gestores de fincas.
