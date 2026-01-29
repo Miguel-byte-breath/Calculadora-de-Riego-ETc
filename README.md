@@ -38,20 +38,20 @@ El núcleo del sistema se basa en la metodología del **Riego Neto**:
 
 El sistema basa sus decisiones en el siguiente flujo de cálculo secuencial:
 
-1.  **Demanda del Cultivo (ET<sub>c</sub>):**
-    `ET<sub>c</sub> = ET<sub>0</sub> × K<sub>c</sub>`
+1.  **Demanda del Cultivo ($ET_c$):**
+    $$ET_c = ET_0 \times K_c$$
 
-2.  **Lluvia Útil (P<sub>e</sub> - Método USDA):**
-    Se aplica la fórmula condicional sobre la precipitación media mensual (P) para descontar escorrentía y percolación profunda.
+2.  **Lluvia Útil ($P_e$ - Método USDA):**
+    Se aplica la fórmula condicional sobre la precipitación media mensual ($P$) para descontar escorrentía y percolación profunda.
 
-3.  **Necesidad Hídrica Neta (NH<sub>n</sub>):**
-    `NH<sub>n</sub> = Max(0, ET<sub>c</sub> - P<sub>e</sub>)`
+3.  **Necesidad Hídrica Neta ($NH_n$):**
+    $$NH_n = Max(0, ET_c - P_e)$$
 
-4.  **Factor de Déficit (K<sub>s</sub>):**
-    `K<sub>s</sub> = Volumen Disponible / Σ NH<sub>n</sub>`
+4.  **Factor de Déficit ($K_s$):**
+    $$K_s = \frac{Volumen\ Disponible}{\sum NH_n}$$
 
 5.  **Riego Final Asignado:**
-    `Riego = NH<sub>n</sub> × K<sub>s</sub>`
+    $$Riego = NH_n \times K_s$$
 
 ---
 
