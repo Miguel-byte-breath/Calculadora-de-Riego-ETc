@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>S.I.G. Riego Pro - Diseño Final</title>
+    <title>S.I.G. Riego Pro - Balance Hídrico Neto</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -10,43 +10,23 @@
     <style>
         /* ESTILOS GENERALES */
         body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 20px; background-color: #f8fafc; color: #334155; }
-        .container { max-width: 1250px; margin: auto; }
+        .container { max-width: 1350px; margin: auto; } /* Un poco más ancho para las nuevas columnas */
         .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; border: 1px solid #e2e8f0; }
         
         /* ESTILO SECCIÓN 1 (Estilo Lluvia AEMET) */
         .header-step { 
-            color: #1e3a8a; 
-            font-weight: 700; 
-            font-size: 1.3rem; 
-            border-bottom: 3px solid #2563eb; /* Línea inferior azul */
-            padding-bottom: 10px; 
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            color: #1e3a8a; font-weight: 700; font-size: 1.3rem; 
+            border-bottom: 3px solid #2563eb; padding-bottom: 10px; margin-bottom: 25px;
+            display: flex; align-items: center; gap: 10px;
         }
 
-        /* Inputs en línea para Sección 1 */
         .search-bar { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .search-item { display: flex; align-items: center; gap: 10px; }
         .search-item label { font-weight: 600; color: #475569; font-size: 1rem; }
         .search-item input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; width: 140px; font-size: 1rem; color: #334155; }
-        
-        /* Caja de Resultado Sección 1 */
-        .result-box { 
-            margin-top: 20px; 
-            background: #f8fafc; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 8px; 
-            padding: 15px 20px; 
-            font-size: 1.05rem;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .result-box { margin-top: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 20px; font-size: 1.05rem; color: #334155; display: flex; align-items: center; gap: 10px; }
 
-        /* ESTILOS RESTO DE SECCIONES */
+        /* ESTILOS RESTO */
         .input-group { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; }
         .input-group div { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; }
         .input-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }
@@ -59,15 +39,18 @@
         .btn-gold { background: linear-gradient(135deg, #ca8a04, #a16207); color: white; width: 100%; padding: 14px; font-size: 1.1rem; box-shadow: 0 4px 6px -1px rgba(202, 138, 4, 0.4); margin-top: 10px; }
         .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 8px -1px rgba(202, 138, 4, 0.5); }
         
-        /* Tablas y Gráficos */
+        /* Tablas */
         .chart-container { height: 380px; margin: 25px 0; position: relative; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; font-size: 0.9rem; }
-        th { background: #f1f5f9; padding: 12px; text-align: center; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
-        td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; font-size: 0.85rem; }
+        th { background: #f1f5f9; padding: 10px; text-align: center; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+        td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center; }
         
-        .col-ideal { color: #15803d; font-weight: 700; background: #f0fdf4; }
+        .col-rain { background-color: #f0f9ff; color: #0284c7; font-weight: 600; }
+        .col-ideal { color: #15803d; font-weight: 700; background: #f0fdf4; border-left: 2px solid #bbf7d0; }
         .col-ajustada { color: #b45309; font-weight: 700; background: #fffbeb; }
         .total-row td { background: #e2e8f0; font-weight: 800; color: #0f172a; text-align: center; border-top: 2px solid #94a3b8; }
+        
+        sub { font-size: 0.7em; vertical-align: sub; }
     </style>
 </head>
 <body>
@@ -76,25 +59,16 @@
     
     <div class="card">
         <div class="header-step">📍 1. Localización de Parcela</div>
-        
         <div class="search-bar">
-            <div class="search-item">
-                <label>Lat:</label>
-                <input type="number" id="lat" value="39.443557" step="0.000001">
-            </div>
-            <div class="search-item">
-                <label>Lon:</label>
-                <input type="number" id="lon" value="-0.740434" step="0.000001">
-            </div>
+            <div class="search-item"><label>Lat:</label><input type="number" id="lat" value="39.443557" step="0.000001"></div>
+            <div class="search-item"><label>Lon:</label><input type="number" id="lon" value="-0.740434" step="0.000001"></div>
             <button class="btn btn-blue" onclick="encontrarMasCercana()">Buscar Estación</button>
         </div>
-
         <div id="resBusqueda" class="result-box" style="display:none"></div>
     </div>
 
     <div class="card">
-        <div class="header-step">🥇 2. Estrategia Hídrica Mensual</div>
-        
+        <div class="header-step">🥇 2. Balance Hídrico Mensual (Agronómico)</div>
         <div class="input-group">
             <div><label class="input-label">Cultivo</label><select id="selectCultivo" class="main-input"><option>Cargando...</option></select></div>
             <div><label class="input-label">Inicio Campaña</label><input type="date" id="cicloIni" value="2026-03-01" class="main-input"></div>
@@ -107,42 +81,42 @@
             <input type="file" id="jsonFile" accept=".json">
         </div>
 
-        <button class="btn btn-gold" onclick="generarPlanOro()">Calcular Balance Hídrico</button>
+        <button class="btn btn-gold" onclick="generarPlanOro()">Calcular Necesidad Neta de Riego</button>
 
         <div id="panelResultados" style="display:none">
             <div class="chart-container"><canvas id="graficaDoble"></canvas></div>
-            <button class="btn btn-blue" style="width:100%" onclick="descargarExcel()">📥 Exportar Mensual (.xlsx)</button>
+            <button class="btn btn-blue" style="width:100%" onclick="descargarExcel()">📥 Exportar Balance Mensual (.xlsx)</button>
             <table>
                 <thead>
                     <tr>
                         <th>Mes</th>
-                        <th>Días Activos</th>
-                        <th>ET<sub>0</sub> (mm/día)</th>
-                        <th>K<sub>c</sub></th>
-                        <th>ET<sub>c</sub> (mm/día)</th>
-                        <th class="col-ideal">Necesidad (m³/ha)</th>
+                        <th>Días</th>
+                        <th>ET<sub>c</sub> (mm)</th>
+                        <th class="col-rain">P (mm)</th>
+                        <th class="col-rain">P<sub>e</sub> (mm)</th>
+                        <th class="col-ideal">NH<sub>n</sub> (m³/ha)</th>
                         <th class="col-ajustada">Asignado (m³/ha)</th>
                     </tr>
                 </thead>
                 <tbody id="cuerpoTabla"></tbody>
                 <tfoot class="total-row">
-                    <tr><td colspan="5" style="text-align:right">TOTALES:</td><td id="totalIdeal"></td><td id="totalAjustado"></td></tr>
+                    <tr><td colspan="5" style="text-align:right">BALANCE NETO:</td><td id="totalIdeal"></td><td id="totalAjustado"></td></tr>
                 </tfoot>
             </table>
         </div>
     </div>
 
     <div class="card" id="seccionSemanal" style="display:none">
-        <div class="header-step">📅 3. Programación Semanal (Correlativa)</div>
+        <div class="header-step">📅 3. Programación Semanal (Riego Neto)</div>
         <p style="color:#64748b; font-size:0.95rem; margin-bottom: 20px;">
-            Distribución operativa continua por semanas naturales del año (ISO).
+            Distribución operativa del riego neto (descontando lluvia efectiva) por semanas naturales.
         </p>
         
         <div class="chart-container"><canvas id="graficaSemanal"></canvas></div>
-        <button class="btn btn-blue" style="width:100%" onclick="descargarExcelSemanal()">📥 Exportar Semanal (.xlsx)</button>
+        <button class="btn btn-blue" style="width:100%" onclick="descargarExcelSemanal()">📥 Exportar Plan Semanal (.xlsx)</button>
 
         <table>
-            <thead><tr><th>Semana Año</th><th>Fechas Aprox</th><th>Riego Semanal (m³/ha)</th></tr></thead>
+            <thead><tr><th>Semana Año</th><th>Fechas Aprox</th><th>Riego Neto Semanal (m³/ha)</th></tr></thead>
             <tbody id="cuerpoTablaSemanal"></tbody>
             <tfoot class="total-row">
                 <tr><td colspan="2" style="text-align:right">ACUMULADO:</td><td id="totalSemanalSuma"></td></tr>
@@ -196,9 +170,8 @@ function encontrarMasCercana() {
             if(d < dMin) { dMin = d; mejor = e; }
         });
         
-        // Formato idéntico al proyecto de LLUVIA
         const res = document.getElementById('resBusqueda');
-        res.style.display = "flex"; // Flex para alinear icono y texto
+        res.style.display = "flex"; 
         res.innerHTML = `
             <span style="font-size:1.2em">✅</span> 
             <span>
@@ -222,40 +195,76 @@ function generarPlanOro() {
             const fIni = new Date(document.getElementById('cicloIni').value);
             const fFin = new Date(document.getElementById('cicloFin').value);
 
-            // 1. Calcular ETo Diaria Promedio por Mes
-            const mediasETo = Array(13).fill(0).map(() => ({ sum: 0, count: 0 }));
+            // 1. Calcular Medias Históricas (ETo y Precipitación)
+            const medias = Array(13).fill(0).map(() => ({ sumEto: 0, sumP: 0, count: 0 }));
+            
             aemet.forEach(d => {
                 const m = parseInt(d.fecha.split('-')[1]);
-                let val = parseFloat(String(d.eto_mes || d.evap_mes || d.e || "0").replace(',','.'));
-                if(val > 0 && m < 13) { mediasETo[m].sum += val; mediasETo[m].count++; }
+                let valEto = parseFloat(String(d.eto_mes || d.evap_mes || d.e || "0").replace(',','.'));
+                let valP = parseFloat(String(d.p_mes || d.precipitacion || "0").replace(',','.')); // Detectar Precipitación
+                
+                if(m < 13) { 
+                    if(valEto >= 0) medias[m].sumEto += valEto;
+                    if(valP >= 0) medias[m].sumP += valP;
+                    medias[m].count++; 
+                }
             });
 
-            // 2. Cálculo Mensual
-            let mesesCiclo = [], sumaIdealM3 = 0, iter = new Date(fIni.getFullYear(), fIni.getMonth(), 1);
+            // 2. Cálculo Mensual del Ciclo
+            let mesesCiclo = [], sumaNHn = 0, iter = new Date(fIni.getFullYear(), fIni.getMonth(), 1);
             
             while (iter <= fFin) {
                 const mIdx = iter.getMonth(), anio = iter.getFullYear();
-                const diasMes = new Date(anio, mIdx + 1, 0).getDate();
-                const rIni = new Date(Math.max(iter, fIni)), rFin = new Date(Math.min(new Date(anio, mIdx, diasMes), fFin));
-                const nDias = Math.max(0, (rFin - rIni) / (86400000) + 1); // Días ACTIVOS reales
+                const diasMesTotal = new Date(anio, mIdx + 1, 0).getDate();
+                const rIni = new Date(Math.max(iter, fIni)), rFin = new Date(Math.min(new Date(anio, mIdx, diasMesTotal), fFin));
+                const nDiasActivos = Math.max(0, (rFin - rIni) / (86400000) + 1);
 
-                if (nDias > 0) {
-                    const etoMensualHist = mediasETo[mIdx+1].count > 0 ? (mediasETo[mIdx+1].sum / mediasETo[mIdx+1].count) : 0;
-                    const etoDiaria = etoMensualHist / diasMes; 
+                if (nDiasActivos > 0) {
+                    // Promedios históricos mensuales
+                    const etoMensualAvg = medias[mIdx+1].count > 0 ? (medias[mIdx+1].sumEto / medias[mIdx+1].count) : 0;
+                    const pMensualAvg = medias[mIdx+1].count > 0 ? (medias[mIdx+1].sumP / medias[mIdx+1].count) : 0;
+
+                    // A. Cálculos ETo -> ETc
+                    const etoDiaria = etoMensualAvg / diasMesTotal;
                     const kc = cultivo.kc[mIdx+1] || 0;
-                    const etcDiaria = etoDiaria * kc; 
-                    const m3Ideal = etcDiaria * nDias * 10;
+                    const etcDiaria = etoDiaria * kc;
+                    const etcMesTotal = etcDiaria * nDiasActivos; // ETc (mm) solo días activos
+
+                    // B. Cálculo de Pe (Precipitación Efectiva) - Método USDA Modificado
+                    let peMensualTotal = 0;
+                    if (pMensualAvg < 70) {
+                        peMensualTotal = (0.6 * pMensualAvg) - 10;
+                    } else {
+                        peMensualTotal = (0.8 * pMensualAvg) - 24;
+                    }
+                    if (peMensualTotal < 0) peMensualTotal = 0; // No puede ser negativa
+
+                    // Prorrateo de Pe a los días activos
+                    const peDiaria = peMensualTotal / diasMesTotal;
+                    const peActiva = peDiaria * nDiasActivos;
+
+                    // C. Balance: Necesidad Neta de Riego (NRn)
+                    // NRn = ETc - Pe (Si llueve más de lo que bebe, riego es 0)
+                    const nrn_mm = Math.max(0, etcMesTotal - peActiva);
                     
-                    sumaIdealM3 += m3Ideal;
+                    // Conversión a Volumen (NHn m3/ha)
+                    const nhn_m3 = nrn_mm * 10;
+
+                    sumaNHn += nhn_m3;
+
                     mesesCiclo.push({ 
                         etiqueta: `${mIdx+1}/${anio}`, 
                         mesNum: mIdx+1, 
                         anio: anio, 
-                        diasActivos: nDias,
-                        etoDiaria: etoDiaria,
-                        kc: kc,
-                        etcDiaria: etcDiaria,
-                        m3Ideal: m3Ideal 
+                        diasActivos: nDiasActivos,
+                        
+                        // Datos brutos
+                        etcMm: etcMesTotal,
+                        pMm: pMensualAvg,   // Dato histórico mes completo (referencia)
+                        peMm: peActiva,     // Pe ajustada a días activos
+                        
+                        // Datos netos
+                        nhn_m3: nhn_m3 
                     });
                 }
                 iter.setMonth(iter.getMonth() + 1);
@@ -264,48 +273,48 @@ function generarPlanOro() {
             // 3. Renderizar Tabla Mensual
             const cuerpo = document.getElementById('cuerpoTabla');
             cuerpo.innerHTML = ""; exportDataMensual = [];
-            let labels = [], dataIdeal = [], dataAjustada = [], sumaAjustadoM3 = 0;
+            let labels = [], dataIdeal = [], dataAjustada = [], sumaAsignada = 0;
 
             mesesCiclo.forEach(m => {
-                const m3Ajustado = sumaIdealM3 > 0 ? (m.m3Ideal / sumaIdealM3) * volV : 0;
-                sumaAjustadoM3 += m3Ajustado;
+                // El prorrateo del recurso disponible ahora se basa en la Necesidad Neta (NHn), no en la bruta
+                const m3Asignado = sumaNHn > 0 ? (m.nhn_m3 / sumaNHn) * volV : 0;
+                sumaAsignada += m3Asignado;
                 
-                m.m3Asignado = m3Ajustado; 
+                m.m3AsignadoFinal = m3Asignado; // Guardar para semanal
 
                 labels.push(m.etiqueta);
-                dataIdeal.push(Math.round(m.m3Ideal));
-                dataAjustada.push(Math.round(m3Ajustado));
+                dataIdeal.push(Math.round(m.nhn_m3));
+                dataAjustada.push(Math.round(m3Asignado));
                 
                 cuerpo.innerHTML += `
                     <tr>
                         <td><b>${m.etiqueta}</b></td>
                         <td>${fmtNum(m.diasActivos)}</td>
-                        <td>${fmtNum(m.etoDiaria, 2)}</td>
-                        <td>${fmtNum(m.kc, 2)}</td>
-                        <td style="background:#f1f5f9; font-weight:bold; color:#334155">${fmtNum(m.etcDiaria, 2)}</td>
-                        <td class="col-ideal">${fmtNum(m.m3Ideal)}</td>
-                        <td class="col-ajustada">${fmtNum(m3Ajustado)}</td>
+                        <td>${fmtNum(m.etcMm, 1)}</td>
+                        <td class="col-rain">${fmtNum(m.pMm, 1)}</td>
+                        <td class="col-rain" style="font-weight:bold">${fmtNum(m.peMm, 1)}</td>
+                        <td class="col-ideal">${fmtNum(m.nhn_m3)}</td>
+                        <td class="col-ajustada">${fmtNum(m3Asignado)}</td>
                     </tr>`;
                     
                 exportDataMensual.push({ 
                     "Mes": m.etiqueta, 
-                    "Días Activos": m.diasActivos,
-                    "ETo (mm/día)": fmtNum(m.etoDiaria, 2),
-                    "Kc": fmtNum(m.kc, 2),
-                    "ETc (mm/día)": fmtNum(m.etcDiaria, 2),
-                    "Necesidad (m3/ha)": Math.round(m.m3Ideal), 
-                    "Asignado (m3/ha)": Math.round(m3Ajustado) 
+                    "ETc (mm)": fmtNum(m.etcMm, 2),
+                    "Precipitación (mm)": fmtNum(m.pMm, 2),
+                    "P. Efectiva (mm)": fmtNum(m.peMm, 2),
+                    "Nec. Neta (m3/ha)": Math.round(m.nhn_m3), 
+                    "Asignado (m3/ha)": Math.round(m3Asignado) 
                 });
             });
 
-            document.getElementById('totalIdeal').innerText = fmtNum(sumaIdealM3) + " m³/ha";
-            document.getElementById('totalAjustado').innerText = fmtNum(sumaAjustadoM3) + " m³/ha";
+            document.getElementById('totalIdeal').innerText = fmtNum(sumaNHn) + " m³";
+            document.getElementById('totalAjustado').innerText = fmtNum(sumaAsignada) + " m³";
             document.getElementById('panelResultados').style.display = "block";
 
             if(miGrafica) miGrafica.destroy();
             miGrafica = new Chart(document.getElementById('graficaDoble').getContext('2d'), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Necesidad (m³/ha)', data: dataIdeal, backgroundColor: '#16a34a' }, { label: 'Asignado (m³/ha)', data: dataAjustada, backgroundColor: '#ca8a04' }] },
+                data: { labels, datasets: [{ label: 'Necesidad Neta (m³/ha)', data: dataIdeal, backgroundColor: '#16a34a' }, { label: 'Riego Asignado (m³/ha)', data: dataAjustada, backgroundColor: '#ca8a04' }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
@@ -324,7 +333,8 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
     let mapaDiario = {};
     
     mesesCiclo.forEach(m => {
-        const m3Diario = m.m3Asignado / m.diasActivos;
+        // Repartimos la DOTACIÓN ASIGNADA (ya neta) día a día
+        const m3Diario = m.m3AsignadoFinal / m.diasActivos;
         
         let dIter = new Date(m.anio, m.mesNum - 1, 1);
         let dFinMes = new Date(m.anio, m.mesNum, 0);
@@ -366,7 +376,8 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
 
     listaSemanas.forEach(s => {
         const val = Math.round(s.suma);
-        if (val > 0) { 
+        // Filtro visual: solo mostramos semanas donde haya que regar
+        if (val >= 0) { 
             totalS += val;
             labelsS.push(s.num);
             dataS.push(val);
@@ -378,11 +389,11 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
                     <td style="color:#64748b; font-size:0.9em">${fechas}</td>
                     <td class="col-ajustada">${fmtNum(val)} m³/ha</td>
                 </tr>`;
-            exportDataSemanal.push({ "Semana": s.num, "Fechas": fechas, "Riego (m3/ha)": val });
+            exportDataSemanal.push({ "Semana": s.num, "Fechas": fechas, "Riego Neto (m3/ha)": val });
         }
     });
 
-    exportDataSemanal.push({ "Semana": "TOTAL", "Riego (m3/ha)": Math.round(totalS) });
+    exportDataSemanal.push({ "Semana": "TOTAL", "Riego Neto (m3/ha)": Math.round(totalS) });
     document.getElementById('totalSemanalSuma').innerText = fmtNum(totalS) + " m³/ha";
     document.getElementById('seccionSemanal').style.display = "block";
 
@@ -392,7 +403,7 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
         data: {
             labels: labelsS,
             datasets: [{
-                label: 'Riego Semanal (m³/ha)',
+                label: 'Riego Neto Semanal (m³/ha)',
                 data: dataS,
                 borderColor: '#ca8a04',
                 backgroundColor: 'rgba(202, 138, 4, 0.15)',
@@ -408,7 +419,7 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
             maintainAspectRatio: false,
             scales: { 
                 x: { title: { display: true, text: 'Semanas del Año' } },
-                y: { title: { display: true, text: 'Volumen (m³/ha)' } }
+                y: { title: { display: true, text: 'Volumen Neto (m³/ha)' } }
             },
             plugins: { datalabels: { display: false } }
         }
@@ -418,15 +429,15 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
 function descargarExcel() {
     const ws = XLSX.utils.json_to_sheet(exportDataMensual);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Mensual_Tecnico");
-    XLSX.writeFile(wb, "Riego_Mensual.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Balance_Mensual");
+    XLSX.writeFile(wb, "Balance_Hidrico.xlsx");
 }
 
 function descargarExcelSemanal() {
     const ws = XLSX.utils.json_to_sheet(exportDataSemanal);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Semanal_Tecnico");
-    XLSX.writeFile(wb, "Riego_Semanal.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Plan_Semanal");
+    XLSX.writeFile(wb, "Riego_Semanal_Neto.xlsx");
 }
 </script>
 </body>
