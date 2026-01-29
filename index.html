@@ -82,6 +82,28 @@
             </table>
         </div>
     </div>
+    <div class="card" id="seccionSemanal" style="display:none">
+        <div class="header-step">📅 3. Previsión de Riego Semanal (Operativa)</div>
+        <p style="font-size: 0.9em; color: #64748b;">Desglose del riego ajustado prorrateado por semanas naturales del ciclo.</p>
+        
+        <div class="chart-container" style="height: 300px;">
+            <canvas id="graficaSemanal"></canvas>
+        </div>
+        
+        <button class="btn btn-blue" style="width:100%; margin-bottom: 15px;" onclick="descargarExcelSemanal()">📥 Descargar Plan Semanal (.xlsx)</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Mes</th>
+                    <th>Semana del Año</th>
+                    <th>Riego Semanal (m³/ha)</th>
+                    <th>Instrucción de Caudal</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTablaSemanal"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -210,7 +232,9 @@ function generarPlanOro() {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { datalabels: { anchor: 'end', align: 'top', font: { size: 10, weight: 'bold' } } }
             }
-        });
+        }); 
+        // Activa el desglose semanal automáticamente
+calcularDesgloseSemanal(mesesCiclo, volV, sumaIdealM3);
     };
     reader.readAsText(file);
 }
@@ -221,6 +245,80 @@ function descargarExcel() {
     XLSX.utils.book_append_sheet(wb, ws, "PlanRiego");
     XLSX.writeFile(wb, "Informe_Riego_Prorrateado.xlsx");
 }
+    let exportDataSemanal = [];
+let miGraficaSemana = null;
+
+function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
+    const cuerpo = document.getElementById('cuerpoTablaSemanal');
+    cuerpo.innerHTML = "";
+    exportDataSemanal = [];
+    const labelsSemana = [];
+    const dataSemana = [];
+
+    mesesCiclo.forEach(m => {
+        // Obtenemos el riego ajustado de este mes
+        const m3MesAjustado = sumaIdealTotal > 0 ? (m.m3Ideal / sumaIdealTotal) * volTotal : 0;
+        
+        // Calculamos cuántas semanas (o fracción) tiene este mes en el ciclo
+        const numSemanas = m.dias / 7;
+        const m3PorSemana = m3MesAjustado / numSemanas;
+
+        // Desglose por semanas naturales
+        for(let i = 1; i <= Math.ceil(numSemanas); i++) {
+            const numSemana = `S${i}-${m.etiqueta}`;
+            labelsSemana.push(numSemana);
+            dataSemana.push(Math.round(m3PorSemana));
+
+            cuerpo.innerHTML += `
+                <tr>
+                    <td>${m.etiqueta}</td>
+                    <td>Semana ${i}</td>
+                    <td class="col-ajustada">${Math.round(m3PorSemana).toLocaleString('es-ES')} m³/ha</td>
+                    <td style="font-style: italic; color: #64748b;">Ajustar según turno de riego</td>
+                </tr>`;
+            
+            exportDataSemanal.push({
+                "Mes": m.etiqueta,
+                "Semana": i,
+                "Riego m3/ha": Math.round(m3PorSemana)
+            });
+        }
+    });
+
+    document.getElementById('seccionSemanal').style.display = "block";
+
+    // Gráfico de tendencia semanal (Línea)
+    const ctxS = document.getElementById('graficaSemanal').getContext('2d');
+    if(miGraficaSemana) miGraficaSemana.destroy();
+    miGraficaSemana = new Chart(ctxS, {
+        type: 'line',
+        data: {
+            labels: labelsSemana,
+            datasets: [{
+                label: 'Previsión Semanal (m³/ha)',
+                data: dataSemana,
+                borderColor: '#ca8a04',
+                backgroundColor: 'rgba(202, 138, 4, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { datalabels: { display: false } } // Desactivamos etiquetas en línea para que no se amontonen
+        }
+    });
+}
+
+function descargarExcelSemanal() {
+    const ws = XLSX.utils.json_to_sheet(exportDataSemanal);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Plan Semanal");
+    XLSX.writeFile(wb, "Plan_Riego_Semanal.xlsx");
+}
+    
 </script>
 </body>
 </html>
