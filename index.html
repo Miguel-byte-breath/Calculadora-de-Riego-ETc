@@ -96,19 +96,19 @@
             <thead>
                 <tr>
                     <th>Mes</th>
-                    <th>Semana del Año</th>
+                    <th>Semana</th>
                     <th>Riego Semanal (m³/ha)</th>
-                    <th>Instrucción de Caudal</th>
+                    <th>Instrucción</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTablaSemanal"></tbody>
             <tfoot>
-        <tr class="total-row">
-            <td colspan="2" style="text-align:right">TOTAL SEMANAL ACUMULADO:</td>
-            <td id="totalSemanalSuma" class="col-ajustada" style="text-align:right"></td>
-            <td></td>
-        </tr>
-    </tfoot>
+                <tr class="total-row">
+                    <td colspan="2" style="text-align:right">TOTAL SEMANAL ACUMULADO:</td>
+                    <td id="totalSemanalSuma" class="col-ajustada" style="text-align:right; font-weight:bold;"></td>
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </div>
@@ -255,6 +255,9 @@ function descargarExcel() {
     let exportDataSemanal = [];
 let miGraficaSemana = null;
 
+let exportDataSemanal = [];
+let miGraficaSemana = null;
+
 function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
     const cuerpo = document.getElementById('cuerpoTablaSemanal');
     cuerpo.innerHTML = "";
@@ -264,31 +267,30 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
     let sumaVerificacionSemanal = 0;
 
     mesesCiclo.forEach(m => {
-        // 1. Total exacto que tiene este mes según el prorrateo de recursos
+        // Cuota total que le corresponde a este mes (sin redondeos intermedios)
         const m3MesObjetivo = sumaIdealTotal > 0 ? (m.m3Ideal / sumaIdealTotal) * volTotal : 0;
         
-        const numSemanasCompletas = Math.floor(m.dias / 7); // Semanas de 7 días
-        const m3PorSemanaNormal = m3MesObjetivo / (m.dias / 7);
+        const diasDelMes = m.dias;
+        const numSemanasIterar = Math.ceil(diasDelMes / 7);
+        const m3PorDia = m3MesObjetivo / diasDelMes;
         
         let m3AcumuladoEnMes = 0;
 
-        // Dibujamos las semanas
-        const iteraciones = Math.ceil(m.dias / 7);
-        for(let i = 1; i <= iteraciones; i++) {
+        for(let i = 1; i <= numSemanasIterar; i++) {
             let m3EstaSemana;
 
-            if (i < iteraciones) {
-                // Semanas normales
-                m3EstaSemana = Math.round(m3PorSemanaNormal);
+            if (i < numSemanasIterar) {
+                // Semanas completas de 7 días
+                m3EstaSemana = Math.round(m3PorDia * 7);
                 m3AcumuladoEnMes += m3EstaSemana;
             } else {
-                // ÚLTIMA SEMANA DEL MES: Solo lo que sobra para clavar el total mensual
+                // Última semana (resto del mes): garantiza que el mes sume lo que debe
                 m3EstaSemana = Math.max(0, Math.round(m3MesObjetivo - m3AcumuladoEnMes));
             }
 
             sumaVerificacionSemanal += m3EstaSemana;
-            const numSemana = `S${i}-${m.etiqueta}`;
-            labelsSemana.push(numSemana);
+            
+            labelsSemana.push(`S${i}-${m.etiqueta}`);
             dataSemana.push(m3EstaSemana);
 
             cuerpo.innerHTML += `
@@ -296,7 +298,7 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
                     <td>${m.etiqueta}</td>
                     <td>Semana ${i}</td>
                     <td class="col-ajustada">${m3EstaSemana.toLocaleString('es-ES')} m³/ha</td>
-                    <td style="font-style: italic; color: #64748b;">${i === iteraciones ? 'Ajuste de cierre de mes' : 'Turno normal'}</td>
+                    <td style="font-style: italic; color: #64748b;">${i === numSemanasIterar ? 'Ajuste cierre mes' : 'Turno normal'}</td>
                 </tr>`;
             
             exportDataSemanal.push({
@@ -307,10 +309,14 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
         }
     });
 
+    // Añadir fila de TOTAL al Excel
+    exportDataSemanal.push({ "Mes": "TOTAL ACUMULADO", "Semana": "-", "Riego m3/ha": Math.round(sumaVerificacionSemanal) });
+
     // Actualizar UI
     document.getElementById('totalSemanalSuma').innerText = Math.round(sumaVerificacionSemanal).toLocaleString('es-ES') + " m³/ha";
-    
-    // El gráfico ahora mostrará la realidad: la última semana de cada mes es más corta
+    document.getElementById('seccionSemanal').style.display = "block";
+
+    // Gráfico de tendencia
     const ctxS = document.getElementById('graficaSemanal').getContext('2d');
     if(miGraficaSemana) miGraficaSemana.destroy();
     miGraficaSemana = new Chart(ctxS, {
@@ -318,12 +324,13 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
         data: {
             labels: labelsSemana,
             datasets: [{
-                label: `Plan Semanal (Suma: ${Math.round(sumaVerificacionSemanal)} m³/ha)`,
+                label: `Plan Semanal (Suma Total: ${Math.round(sumaVerificacionSemanal)} m³/ha)`,
                 data: dataSemana,
                 borderColor: '#ca8a04',
                 backgroundColor: 'rgba(202, 138, 4, 0.1)',
                 fill: true,
-                tension: 0.3
+                tension: 0.3,
+                pointRadius: 3
             }]
         },
         options: { 
@@ -337,8 +344,8 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
 function descargarExcelSemanal() {
     const ws = XLSX.utils.json_to_sheet(exportDataSemanal);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Plan Semanal");
-    XLSX.writeFile(wb, "Plan_Riego_Semanal.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Plan_Semanal");
+    XLSX.writeFile(wb, "Plan_Riego_Semanal_Ajustado.xlsx");
 }
     
 </script>
