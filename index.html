@@ -2,22 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Calculadora de Riego ETc - Gestión Agronómica</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <title>Calculadora ETc - Gestión de Riego Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f8fafc; color: #334155; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f1f5f9; color: #1e293b; }
         .container { max-width: 1000px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; }
-        .header-step { border-left: 5px solid #2563eb; padding-left: 15px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; color: #1e3a8a; }
-        .input-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; align-items: center; }
-        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .header-step { border-left: 5px solid #2563eb; padding-left: 15px; margin-bottom: 20px; color: #1e3a8a; font-weight: bold; font-size: 1.2em; }
         .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; background: #2563eb; color: white; }
-        .btn-calc { background: #059669; width: 100%; margin-top: 10px; font-size: 1.1em; }
-        .result-box { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 10px; font-family: monospace; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #e2e8f0; text-align: center; }
+        .btn-calc { background: #16a34a; width: 100%; margin-top: 15px; font-size: 1.1em; }
+        .input-group { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
         th { background: #f8fafc; color: #1e3a8a; }
-        .highlight { font-weight: bold; color: #059669; }
+        .highlight { font-weight: bold; color: #166534; background: #dcfce7; }
+        .result-box { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -34,46 +34,48 @@
     </div>
 
     <div class="card">
-        <div class="header-step">💧 Sección 2: Cálculo de ETc y Consumo de Agua</div>
+        <div class="header-step">💧 Sección 2: Cálculo de ETc y Consumo (m³/ha)</div>
         <div class="input-group">
-            Cultivo: <select id="selectCultivo"><option>Cargando cultivos...</option></select>
-            Inicio: <input type="month" id="fechaInicio" value="2024-03">
-            Fin: <input type="month" id="fechaFin" value="2024-09">
+            Cultivo: <select id="selectCultivo"><option>Cargando lista...</option></select>
+            Inicio: <input type="month" id="fechaIni" value="2024-01">
+            Fin: <input type="month" id="fechaFin" value="2024-12">
         </div>
-        <p>Carga el JSON de AEMET (Datos Mensuales de ETo/Evaporación):</p>
+        <p>Carga el JSON de AEMET (con datos de <code>eto_mes</code>):</p>
         <input type="file" id="jsonFile" accept=".json">
         
-        <button class="btn btn-calc" onclick="calcularRiego()">Calcular Necesidades Hídricas</button>
+        <button class="btn btn-calc" onclick="procesarRiego()">Calcular Necesidades de Riego</button>
 
-        <div id="resultadosRiego" style="display:none">
-            <table>
+        <div id="panelResultados" style="display:none">
+            <table id="tablaEtc">
                 <thead>
                     <tr>
                         <th>Mes</th>
-                        <th>ETo AEMET (mm)</th>
-                        <th>Kc</th>
+                        <th>ETo (mm)</th>
+                        <th>Kc (Mes)</th>
                         <th>ETc (mm)</th>
                         <th>Riego (m³/ha)</th>
                     </tr>
                 </thead>
-                <tbody id="tablaBody"></tbody>
+                <tbody id="cuerpoEtc"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-let tablaCultivos = [];
+let cultivosData = [];
+const formatNum = { minimumFractionDigits: 1, maximumFractionDigits: 1 };
 
-// Cargar tabla maestra de cultivos
+// Cargar cultivos desde el JSON
 fetch('cultivos.json')
     .then(r => r.json())
     .then(data => {
-        tablaCultivos = data;
+        cultivosData = data;
         const select = document.getElementById('selectCultivo');
-        select.innerHTML = data.map(c => `<option value="${c.kc}">${c.nombre} (Kc: ${c.kc})</option>`).join('');
+        select.innerHTML = data.map((c, index) => `<option value="${index}">${c.nombre}</option>`).join('');
     });
 
+// --- LÓGICA DE BÚSQUEDA (IGUAL AL PROYECTO ANTERIOR) ---
 function aemetToDec(c) {
     if(!c) return 0;
     const d = c.slice(-1), n = c.slice(0,-1);
@@ -93,48 +95,54 @@ function buscarEstacion() {
         });
         const res = document.getElementById('infoEstacion');
         res.style.display = "block";
-        res.innerHTML = `✅ <strong>Estación:</strong> ${m.nombre} | <strong>Cód:</strong> ${m.indicativo}<br>Usa este código en Postman para bajar los datos mensuales.`;
+        res.innerHTML = `✅ <strong>Estación:</strong> ${m.nombre} | <strong>Cód:</strong> <span style="color:red">${m.indicativo}</span>`;
     });
 }
 
-function calcularRiego() {
+// --- LÓGICA MATEMÁTICA ETc ---
+function procesarRiego() {
     const file = document.getElementById('jsonFile').files[0];
-    if(!file) return alert("Por favor, carga el archivo JSON de AEMET");
+    if(!file) return alert("Por favor, sube el archivo JSON de AEMET");
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        const aemetData = JSON.parse(e.target.result);
-        const kc = parseFloat(document.getElementById('selectCultivo').value);
-        const fIni = document.getElementById('fechaInicio').value; // Formato YYYY-MM
+        const aemet = JSON.parse(e.target.result);
+        const cultivo = cultivosData[document.getElementById('selectCultivo').value];
+        const fIni = document.getElementById('fechaIni').value;
         const fFin = document.getElementById('fechaFin').value;
         
-        const tablaBody = document.getElementById('tablaBody');
-        tablaBody.innerHTML = "";
-        
-        // Filtrar y calcular
-        const mesesFiltrados = aemetData.filter(d => {
+        const cuerpo = document.getElementById('cuerpoEtc');
+        cuerpo.innerHTML = "";
+
+        // Filtrar datos de AEMET por rango de fechas
+        const filtrados = aemet.filter(d => {
             const f = d.fecha.substring(0,7);
             return f >= fIni && f <= fFin && !f.endsWith("-13");
         });
 
-        mesesFiltrados.forEach(d => {
-            // AEMET usa 'eto_mes' o 'evap_mes' para la evapotranspiración/evaporación
-            let eto = parseFloat(String(d.eto_mes || d.evap_mes || "0").replace(',','.'));
-            let etc = eto * kc;
-            let m3ha = etc * 10;
+        filtrados.forEach(d => {
+            const mesNumero = parseInt(d.fecha.split('-')[1]);
+            const eto = parseFloat(String(d.eto_mes || d.evap_mes || "0").replace(',','.'));
+            
+            // BUSCAR Kc EN LA TABLA MAESTRA SEGÚN EL MES
+            const kcMes = cultivo.kc[mesNumero] || 0.1;
+            
+            // CÁLCULOS
+            const etc = eto * kcMes;
+            const m3ha = etc * 10;
 
-            tablaBody.innerHTML += `
+            cuerpo.innerHTML += `
                 <tr>
                     <td>${d.fecha}</td>
-                    <td>${eto.toLocaleString('es-ES')}</td>
-                    <td>${kc.toFixed(2)}</td>
-                    <td class="highlight">${etc.toLocaleString('es-ES', {minimumFractionDigits:1})}</td>
-                    <td class="highlight">${m3ha.toLocaleString('es-ES', {minimumFractionDigits:0})}</td>
+                    <td>${eto.toLocaleString('es-ES', formatNum)}</td>
+                    <td>${kcMes.toFixed(2)}</td>
+                    <td class="highlight">${etc.toLocaleString('es-ES', formatNum)} mm</td>
+                    <td class="highlight">${m3ha.toLocaleString('es-ES', {maximumFractionDigits:0})} m³/ha</td>
                 </tr>
             `;
         });
 
-        document.getElementById('resultadosRiego').style.display = "block";
+        document.getElementById('panelResultados').style.display = "block";
     };
     reader.readAsText(file);
 }
