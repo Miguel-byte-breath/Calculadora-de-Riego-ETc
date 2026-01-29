@@ -260,6 +260,8 @@ let miGraficaSemana = null;
 
 function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
     const cuerpo = document.getElementById('cuerpoTablaSemanal');
+    if (!cuerpo) return; // Seguridad si el HTML no existe
+    
     cuerpo.innerHTML = "";
     exportDataSemanal = [];
     const labelsSemana = [];
@@ -267,7 +269,7 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
     let sumaVerificacionSemanal = 0;
 
     mesesCiclo.forEach(m => {
-        // Cuota total que le corresponde a este mes (sin redondeos intermedios)
+        // Cálculo del objetivo mensual basado en la dotación disponible
         const m3MesObjetivo = sumaIdealTotal > 0 ? (m.m3Ideal / sumaIdealTotal) * volTotal : 0;
         
         const diasDelMes = m.dias;
@@ -280,11 +282,11 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
             let m3EstaSemana;
 
             if (i < numSemanasIterar) {
-                // Semanas completas de 7 días
+                // Semanas completas
                 m3EstaSemana = Math.round(m3PorDia * 7);
                 m3AcumuladoEnMes += m3EstaSemana;
             } else {
-                // Última semana (resto del mes): garantiza que el mes sume lo que debe
+                // Ajuste de cierre de mes para clavar el total
                 m3EstaSemana = Math.max(0, Math.round(m3MesObjetivo - m3AcumuladoEnMes));
             }
 
@@ -309,14 +311,14 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
         }
     });
 
-    // Añadir fila de TOTAL al Excel
+    // Añadir el total al Excel
     exportDataSemanal.push({ "Mes": "TOTAL ACUMULADO", "Semana": "-", "Riego m3/ha": Math.round(sumaVerificacionSemanal) });
 
-    // Actualizar UI
+    // Actualizar el total visual en la tabla
     document.getElementById('totalSemanalSuma').innerText = Math.round(sumaVerificacionSemanal).toLocaleString('es-ES') + " m³/ha";
     document.getElementById('seccionSemanal').style.display = "block";
 
-    // Gráfico de tendencia
+    // Dibujar Gráfico Semanal
     const ctxS = document.getElementById('graficaSemanal').getContext('2d');
     if(miGraficaSemana) miGraficaSemana.destroy();
     miGraficaSemana = new Chart(ctxS, {
@@ -324,13 +326,12 @@ function calcularDesgloseSemanal(mesesCiclo, volTotal, sumaIdealTotal) {
         data: {
             labels: labelsSemana,
             datasets: [{
-                label: `Plan Semanal (Suma Total: ${Math.round(sumaVerificacionSemanal)} m³/ha)`,
+                label: `Previsión Semanal (Total: ${Math.round(sumaVerificacionSemanal)} m³/ha)`,
                 data: dataSemana,
                 borderColor: '#ca8a04',
                 backgroundColor: 'rgba(202, 138, 4, 0.1)',
                 fill: true,
-                tension: 0.3,
-                pointRadius: 3
+                tension: 0.4
             }]
         },
         options: { 
