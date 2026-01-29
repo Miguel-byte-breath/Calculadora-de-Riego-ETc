@@ -41,8 +41,18 @@ El sistema basa sus decisiones en el siguiente flujo de cálculo secuencial:
 1.  **Demanda del Cultivo ($ET_c$):**
     $$ET_c = ET_0 \times K_c$$
 
-2.  **Lluvia Útil ($P_e$ - Método USDA):**
-    Se aplica la fórmula condicional sobre la precipitación media mensual ($P$) para descontar escorrentía y percolación profunda.
+2.  **Lluvia Útil ($P_e$ - Método USDA S.C.S.):**
+    Se implementa el algoritmo empírico del *Soil Conservation Service* para estimar la fracción de lluvia que realmente se almacena en la zona radicular, descartando escorrentía superficial y percolación profunda. Se discrimina según la intensidad de la precipitación mensual ($P_{mes}$):
+
+    * **Para precipitaciones bajas/medias ($P_{mes} < 70 \text{ mm}$):**
+        $$P_e = (P_{mes} \times 0.6) - 10$$
+        *(Se asume mayor pérdida proporcional por evaporación superficial)*
+
+    * **Para precipitaciones altas ($P_{mes} \ge 70 \text{ mm}$):**
+        $$P_e = (P_{mes} \times 0.8) - 24$$
+        *(Se asume mayor eficiencia de infiltración, pero mayor pérdida por escorrentía)*
+
+    *> Nota: El sistema aplica un suelo de $0$ ($P_e \ge 0$) para evitar valores negativos en meses muy secos.*
 
 3.  **Necesidad Hídrica Neta ($NH_n$):**
     $$NH_n = Max(0, ET_c - P_e)$$
@@ -52,7 +62,6 @@ El sistema basa sus decisiones en el siguiente flujo de cálculo secuencial:
 
 5.  **Riego Final Asignado:**
     $$Riego = NH_n \times K_s$$
-
 ---
 
 ## 🛠️ Tecnologías y Diseño
