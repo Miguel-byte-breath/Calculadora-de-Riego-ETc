@@ -2,54 +2,61 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>S.I.G. Riego Pro - Informe Profesional</title>
+    <title>S.I.G. Riego Pro - Diseño Premium</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         /* ESTILOS GENERALES */
-        body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 20px; background-color: #f8fafc; color: #334155; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 20px; background-color: #f8fafc; color: #334155; }
         .container { max-width: 1400px; margin: auto; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .card { background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); margin-bottom: 30px; border: 1px solid #f1f5f9; }
         
-        /* ESTILO SECCIÓN 1 */
+        /* HEADER CON ESTILO */
         .header-step { 
-            color: #1e3a8a; font-weight: 700; font-size: 1.3rem; 
-            border-bottom: 3px solid #2563eb; padding-bottom: 10px; margin-bottom: 25px;
-            display: flex; align-items: center; gap: 10px;
+            color: #0f172a; font-weight: 800; font-size: 1.4rem; 
+            border-bottom: 4px solid #3b82f6; padding-bottom: 12px; margin-bottom: 30px;
+            display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px;
         }
 
+        /* INPUTS MODERNOS */
         .search-bar { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .search-item { display: flex; align-items: center; gap: 10px; }
-        .search-item label { font-weight: 600; color: #475569; font-size: 1rem; }
-        .search-item input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; width: 140px; font-size: 1rem; color: #334155; }
-        .result-box { margin-top: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 20px; font-size: 1.05rem; color: #334155; display: flex; align-items: center; gap: 10px; }
+        .search-item label { font-weight: 600; color: #64748b; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .search-item input { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; width: 140px; font-size: 1rem; color: #1e293b; transition: all 0.2s; }
+        .search-item input:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        .result-box { margin-top: 20px; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 10px; padding: 15px 20px; font-size: 1.05rem; color: #1e40af; display: flex; align-items: center; gap: 12px; }
 
-        /* ESTILOS RESTO */
-        .input-group { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; }
-        .input-group div { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; }
-        .input-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }
-        .main-input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; background: #fff; width: 100%; box-sizing: border-box; }
+        /* INPUT GROUP */
+        .input-group { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; align-items: flex-end; }
+        .input-group div { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 160px; }
+        .input-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.8px; }
+        .main-input { padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; background: #fff; width: 100%; box-sizing: border-box; transition: all 0.2s; }
+        .main-input:focus { border-color: #ca8a04; outline: none; box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.1); }
         
-        /* Botones */
-        .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 1rem; }
-        .btn-blue { background: #2563eb; color: white; }
-        .btn-blue:hover { background: #1d4ed8; }
-        .btn-gold { background: linear-gradient(135deg, #ca8a04, #a16207); color: white; width: 100%; padding: 14px; font-size: 1.1rem; box-shadow: 0 4px 6px -1px rgba(202, 138, 4, 0.4); margin-top: 10px; }
-        .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 8px -1px rgba(202, 138, 4, 0.5); }
+        /* BOTONES PREMIUM */
+        .btn { padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-blue { background: #3b82f6; color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3); }
+        .btn-blue:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn-gold { background: linear-gradient(135deg, #d97706, #b45309); color: white; width: 100%; padding: 16px; font-size: 1.15rem; box-shadow: 0 10px 15px -3px rgba(180, 83, 9, 0.3); margin-top: 15px; letter-spacing: 0.5px; }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 20px -3px rgba(180, 83, 9, 0.4); }
         
-        /* Tablas */
-        .chart-container { height: 450px; margin: 30px 0; position: relative; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; font-size: 0.85rem; }
-        th { background: #f1f5f9; padding: 10px; text-align: center; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; white-space: nowrap; vertical-align: middle; }
-        td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center; vertical-align: middle; }
+        /* GRÁFICOS Y TABLAS */
+        .chart-container { height: 480px; margin: 35px 0; position: relative; }
         
-        .col-climate { color: #475569; background-color: #f8fafc; }
-        .col-rain { background-color: #f0f9ff; color: #0284c7; font-weight: 600; }
-        .col-ideal { color: #15803d; font-weight: 700; background: #f0fdf4; border-left: 2px solid #bbf7d0; }
-        .col-ajustada { color: #b45309; font-weight: 700; background: #fffbeb; }
-        .total-row td { background: #e2e8f0; font-weight: 800; color: #0f172a; text-align: center; border-top: 2px solid #94a3b8; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 25px; font-size: 0.9rem; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+        th { background: #f8fafc; padding: 14px; text-align: center; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0; white-space: nowrap; vertical-align: middle; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: center; vertical-align: middle; color: #334155; }
+        tr:last-child td { border-bottom: none; }
+        
+        /* COLUMNAS */
+        .col-climate { color: #64748b; background-color: #fcfcfc; }
+        .col-rain { background-color: #eff6ff; color: #0369a1; font-weight: 600; }
+        .col-ideal { color: #166534; font-weight: 700; background: #f0fdf4; border-left: 2px solid #bbf7d0; }
+        .col-ajustada { color: #9a3412; font-weight: 700; background: #fff7ed; }
+        .total-row td { background: #f1f5f9; font-weight: 800; color: #0f172a; border-top: 2px solid #cbd5e1; font-size: 1rem; }
         
         sub { font-size: 0.7em; vertical-align: sub; }
     </style>
@@ -77,12 +84,12 @@
             <div><label class="input-label">Recursos (m³/ha)</label><input type="number" id="volDisponible" value="4000" class="main-input"></div>
         </div>
         
-        <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; border: 2px dashed #cbd5e1; text-align: center;">
-            <label style="font-weight:600; color:#64748b; margin-right:10px;">📂 Archivo Climático (JSON AEMET):</label>
-            <input type="file" id="jsonFile" accept=".json">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px dashed #e2e8f0; text-align: center; transition: border-color 0.2s;">
+            <label style="font-weight:700; color:#475569; margin-right:15px; font-size:0.95rem;">📂 Archivo Climático (JSON AEMET):</label>
+            <input type="file" id="jsonFile" accept=".json" style="font-size:0.9rem;">
         </div>
 
-        <button class="btn btn-gold" onclick="generarPlanOro()">Calcular Balance Completo</button>
+        <button class="btn btn-gold" onclick="generarPlanOro()">✨ Calcular Balance Completo</button>
 
         <div id="panelResultados" style="display:none">
             <div class="chart-container"><canvas id="graficaDoble"></canvas></div>
@@ -111,7 +118,7 @@
 
     <div class="card" id="seccionSemanal" style="display:none">
         <div class="header-step">📅 3. Programación Semanal (Riego Neto)</div>
-        <p style="color:#64748b; font-size:0.95rem; margin-bottom: 20px;">
+        <p style="color:#64748b; font-size:1rem; margin-bottom: 25px; line-height: 1.5;">
             Distribución operativa del riego neto (descontando lluvia efectiva) por semanas naturales.
         </p>
         
@@ -132,6 +139,11 @@
 <script>
 // --- CONFIGURACIÓN GLOBAL ---
 Chart.register(ChartDataLabels);
+// Configuración global de fuentes para Chart.js
+Chart.defaults.font.family = "'Segoe UI', 'Helvetica', 'Arial', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#64748b';
+
 let cultivosData = [], exportDataMensual = [], exportDataSemanal = [], miGrafica = null, miGraficaSemana = null;
 
 const fmtNum = (n, dec=0) => n.toLocaleString('es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec });
@@ -176,10 +188,10 @@ function encontrarMasCercana() {
         const res = document.getElementById('resBusqueda');
         res.style.display = "flex"; 
         res.innerHTML = `
-            <span style="font-size:1.2em">✅</span> 
+            <span style="font-size:1.4em">✅</span> 
             <span>
                 <b>Estación:</b> ${mejor.nombre} | 
-                <b>Cód:</b> <span style="color:#e11d48; font-weight:bold">${mejor.indicativo}</span> | 
+                <b>Cód:</b> <span style="color:#e11d48; font-weight:800">${mejor.indicativo}</span> | 
                 <b>Distancia:</b> ${fmtNum(dMin*111, 1)} km
             </span>`;
     });
@@ -188,7 +200,7 @@ function encontrarMasCercana() {
 function generarPlanOro() {
     const file = document.getElementById('jsonFile').files[0];
     const volV = parseFloat(document.getElementById('volDisponible').value) || 0;
-    if(!file) return alert("Sube el JSON de AEMET");
+    if(!file) return alert("⚠️ Por favor, sube el archivo JSON de AEMET.");
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -245,7 +257,6 @@ function generarPlanOro() {
 
                     sumaNHn += nhn_m3;
 
-                    // Etiqueta bonita (ej: mar-26)
                     const nombreMes = nombresMesesCortos[mIdx];
                     const anioCorto = String(anio).slice(-2);
                     const etiquetaBonita = `${nombreMes}-${anioCorto}`;
@@ -276,7 +287,7 @@ function generarPlanOro() {
                 sumaAsignada += m3Asignado;
                 m.m3AsignadoFinal = m3Asignado;
 
-                labels.push(m.etiqueta); // Usa la etiqueta bonita
+                labels.push(m.etiqueta); 
                 let volPe = Math.round(m.peMm * 10); 
                 dataPe.push(volPe); 
 
@@ -285,7 +296,7 @@ function generarPlanOro() {
                 
                 cuerpo.innerHTML += `
                     <tr>
-                        <td style="text-transform: capitalize;"><b>${m.etiqueta}</b></td>
+                        <td style="text-transform: capitalize; font-weight:600; color:#1e293b;">${m.etiqueta}</td>
                         <td>${fmtNum(m.diasActivos)}</td>
                         <td class="col-climate">${fmtNum(m.etoDiaria, 2)}</td>
                         <td class="col-climate">${fmtNum(m.kc, 2)}</td>
@@ -312,7 +323,7 @@ function generarPlanOro() {
             document.getElementById('totalAjustado').innerText = fmtNum(sumaAsignada) + " m³";
             document.getElementById('panelResultados').style.display = "block";
 
-            // --- GRÁFICO SUPERBONITO Y PROFESIONAL ---
+            // --- GRÁFICO OPTIMIZADO: EL "TOQUE PREMIUM" ---
             if(miGrafica) miGrafica.destroy();
             miGrafica = new Chart(document.getElementById('graficaDoble').getContext('2d'), {
                 type: 'bar',
@@ -322,35 +333,52 @@ function generarPlanOro() {
                         { 
                             label: 'P. Efectiva (m³/ha)', 
                             data: dataPe, 
-                            backgroundColor: '#3b82f6', 
-                            borderRadius: 4, // Bordes redondeados
-                            barPercentage: 0.7 
+                            backgroundColor: '#60a5fa', // Azul más suave y moderno
+                            hoverBackgroundColor: '#3b82f6',
+                            borderRadius: 4,
+                            barPercentage: 1.0,      // Barras pegadas entre sí dentro del mes
+                            categoryPercentage: 0.6  // Más espacio entre los meses
                         },
                         { 
                             label: 'Nec. Neta (m³/ha)', 
                             data: dataIdeal, 
-                            backgroundColor: '#16a34a', 
+                            backgroundColor: '#34d399', // Verde Esmeralda moderno
+                            hoverBackgroundColor: '#10b981',
                             borderRadius: 4,
-                            barPercentage: 0.7
+                            barPercentage: 1.0,
+                            categoryPercentage: 0.6
                         },
                         { 
                             label: 'Riego Asig. (m³/ha)', 
                             data: dataAjustada, 
-                            backgroundColor: '#ca8a04', 
+                            backgroundColor: '#fbbf24', // Ambar cálido
+                            hoverBackgroundColor: '#f59e0b',
                             borderRadius: 4,
-                            barPercentage: 0.7
+                            barPercentage: 1.0,
+                            categoryPercentage: 0.6
                         }
                     ] 
                 },
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 30 } }, // Espacio para que no se corten las etiquetas de arriba
+                    layout: { padding: { top: 30, left: 10, right: 10 } }, 
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     plugins: { 
+                        // Tooltip estilo "Tarjeta Limpia"
                         tooltip: {
-                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)', // Fondo blanco casi opaco
+                            titleColor: '#1e293b', // Texto oscuro
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0', // Borde sutil
+                            borderWidth: 1,
                             padding: 12,
-                            titleFont: { size: 13 },
+                            boxPadding: 4,
+                            usePointStyle: true,
+                            titleFont: { size: 13, weight: 'bold' },
                             bodyFont: { size: 13 },
                             callbacks: {
                                 label: function(context) {
@@ -365,27 +393,26 @@ function generarPlanOro() {
                         },
                         legend: { 
                             position: 'top', 
-                            labels: { usePointStyle: true, font: { size: 12 }, padding: 20 } 
+                            labels: { usePointStyle: true, pointStyle: 'circle', font: { size: 12 }, padding: 20, color: '#475569' } 
                         },
                         datalabels: {
-                            anchor: 'end',    // Anclado al final de la barra
-                            align: 'end',     // Empujado hacia arriba (fuera de la barra)
-                            offset: -2,       // Ajuste fino
-                            color: '#475569', // Color gris profesional
-                            font: { weight: 'bold', size: 11 },
-                            formatter: function(value) {
-                                return value > 0 ? value : ''; // Si es 0 no ensucia el gráfico
-                            }
+                            anchor: 'end',    
+                            align: 'end',     
+                            offset: -2,       
+                            color: '#64748b', 
+                            font: { weight: 'bold', size: 10 },
+                            formatter: function(value) { return value > 0 ? value : ''; }
                         }
                     },
                     scales: {
                         x: { 
-                            grid: { display: false }, // Eje X limpio
-                            ticks: { font: { size: 12, weight: 'bold' }, color: '#334155' }
+                            grid: { display: false }, 
+                            ticks: { font: { size: 11, weight: '600' }, color: '#475569' }
                         }, 
                         y: { 
-                            grid: { borderDash: [5, 5], color: '#e2e8f0' }, // Rejilla discontinua moderna
-                            border: { display: false } // Quitar borde feo del eje
+                            grid: { borderDash: [4, 4], color: '#f1f5f9', drawBorder: false }, // Rejilla muy sutil
+                            border: { display: false },
+                            ticks: { color: '#94a3b8' }
                         }
                     }
                 }
@@ -395,7 +422,7 @@ function generarPlanOro() {
 
         } catch (error) {
             console.error(error);
-            alert("Error: " + error.message);
+            alert("⚠️ Error procesando datos: " + error.message);
         }
     };
     reader.readAsText(file);
@@ -461,7 +488,7 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
                 label: 'Riego Neto Semanal (m³/ha)',
                 data: dataS,
                 borderColor: '#ca8a04',
-                backgroundColor: 'rgba(202, 138, 4, 0.15)',
+                backgroundColor: 'rgba(202, 138, 4, 0.1)',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4,
@@ -477,7 +504,7 @@ function descargarExcel() {
     const ws = XLSX.utils.json_to_sheet(exportDataMensual);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Balance_Mensual");
-    XLSX.writeFile(wb, "Balance_Hidrico.xlsx");
+    XLSX.writeFile(wb, "Balance_Hidrico_Pro.xlsx");
 }
 
 function descargarExcelSemanal() {
