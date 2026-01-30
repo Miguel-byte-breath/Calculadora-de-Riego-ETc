@@ -9,17 +9,18 @@ Una herramienta web avanzada de ingeniería agronómica diseñada para el cálcu
 ## 🚀 Funcionalidades Clave
 
 ### 📍 1. Geolocalización y Climatología
-* **Búsqueda Geoespacial:** Algoritmo que identifica automáticamente la estación meteorológica (AEMET) más cercana a las coordenadas exactas de la parcela (Lat/Lon).
-* ### 📐 Base Cartográfica y Geodesia
-* **Sistema de Referencia:** El sistema opera bajo el estándar **EPSG:4258** (ETRS89 en coordenadas geográficas Latitud/Longitud), garantizando la plena compatibilidad con la cartografía oficial española y europea.
-* **Algoritmo de Proximidad:** Para la búsqueda de estaciones de AEMET, se implementa una **Aproximación Euclidiana** sobre el plano (Teorema de Pitágoras):
-  $$d = \sqrt{(\Delta lat)^2 + (\Delta lon)^2} \times 111$$
-* **Racional Técnico:** Se utiliza el factor de conversión de **111 km/grado**. Esta aproximación plana optimiza el rendimiento computacional en el cliente (navegador), ofreciendo una precisión submétrica en el cálculo de distancias locales (< 100 km) frente a fórmulas geodésicas complejas como Haversine, siendo ideal para la discriminación de la estación meteorológica más representativa.
-* **Procesamiento de Datos:** Ingesta de archivos JSON (formato **AEMET OpenData**) con capacidad de procesar series históricas completas (medias aritméticas de todos los años disponibles) para obtener valores robustos de **ET<sub>0</sub>** (Evapotranspiración de Referencia) y **P** (Precipitación).
-* > **⚠️ Nota Técnica sobre Proyección a Futuro:**
-> Dado que la herramienta permite planificar campañas de cultivo en fechas futuras, el sistema genera un **modelo climático predictivo**.
-> Para ello, calcula la **media aritmética mensual** de los datos presentes en el archivo JSON (utilizando la serie histórica disponible, típicamente los últimos 3 años). De esta forma, se proyecta un comportamiento climático estadísticamente representativo para los meses venideros, suavizando las anomalías puntuales de un año específico.
-### 🥇 2. Balance Hídrico Mensual (Agronómico)
+* **Búsqueda Geoespacial:** Algoritmo que identifica automáticamente la estación meteorológica (AEMET) más cercana a las coordenadas exactas de la parcela.
+* **Base Cartográfica y Geodesia:** El sistema opera bajo el estándar **EPSG:4258** (ETRS89 en coordenadas geográficas Latitud/Longitud), garantizando plena compatibilidad con la cartografía oficial española y europea.
+* **Cálculo de Proximidad:** Se implementa una **Aproximación Euclidiana** sobre el plano ($d = \sqrt{\Delta lat^2 + \Delta lon^2} \times 111$) utilizando el factor de conversión estándar de 111 km/grado. Esta aproximación optimiza el rendimiento computacional en el cliente, ofreciendo una precisión submétrica en distancias locales frente a fórmulas geodésicas complejas.
+* **Procesamiento de Datos:** Ingesta de archivos JSON (formato AEMET OpenData) para el análisis de series climáticas históricas.
+
+### 🔮 2. Modelo Climático Predictivo (Patrón de Referencia)
+Dado que la gestión agronómica requiere anticiparse a las necesidades de la campaña, el sistema implementa un motor de proyección basado en estadística climática reciente:
+* **Generación del "Año Tipo":** El software no utiliza un único año (que podría ser atípico), sino que procesa los datos del archivo JSON para extraer la **media aritmética mensual** de los últimos 3 años disponibles.
+* **Fiabilidad del Balance:** Al promediar un trienio, se establece un patrón de referencia robusto para la **ET<sub>0</sub>** y la **Precipitación**. Esto permite que, aunque el ciclo de cultivo se configure para fechas futuras, el balance hídrico se sustente sobre una base científica que suaviza anomalías térmicas o pluviométricas puntuales.
+* **Estacionalidad:** El modelo respeta la estacionalidad climática local de la estación de AEMET seleccionada, asegurando que la curva de demanda hídrica sea coherente con el entorno real de la finca.
+
+### 🥇 3. Balance Hídrico Mensual (Agronómico)
 El núcleo del sistema se basa en la metodología del **Riego Neto**:
 * **Cálculo de ET<sub>c</sub>:** Transformación de la ET<sub>0</sub> climática mediante Coeficientes de Cultivo (**K<sub>c</sub>**) dinámicos para obtener la demanda bruta.
 * **Precipitación Efectiva (P<sub>e</sub>):** Implementación del **Método USDA (SCS)** modificado para calcular la lluvia útil aprovechable por el cultivo:
@@ -28,56 +29,41 @@ El núcleo del sistema se basa en la metodología del **Riego Neto**:
 * **Necesidad Neta (NH<sub>n</sub>):** Cálculo del déficit real del cultivo (`ET<sub>c</sub> - P<sub>e</sub>`).
 * **Gestión de Recursos:** Algoritmo de reparto proporcional (Estrategia de Riego Deficitario Controlado) que ajusta la dotación final si el volumen disponible es inferior a la demanda ideal.
 
-### 📅 3. Planificación Operativa Semanal
+### 📅 4. Planificación Operativa Semanal
 * **Flujo Continuo:** Conversión de la planificación mensual a semanas naturales del año (ISO 8601).
 * **Distribución Diaria:** Lógica de interpolación diaria que evita los "escalones" o cortes artificiales entre meses, generando una curva de riego suave, continua y agronómicamente viable.
 
-### 📊 4. Visualización y Reporting
+### 📊 5. Visualización y Reporting
 * **Dashboard Interactivo:** Gráficos profesionales (Chart.js) con diseño optimizado:
     * **Azul Cielo (`#38bdf8`):** Precipitación Efectiva (P<sub>e</sub>).
     * **Azul Real (`#2563eb`):** Necesidad Neta (NH<sub>n</sub>).
     * **Oro/Ámbar (`#d97706`):** Riego Asignado (Recurso Humano).
-* **Exportación de Datos:** Generación automática de informes en Excel (`.xlsx`) con tablas detalladas (Balance Mensual y Plan Semanal) para el cuaderno de campo.
+* **Exportación de Datos:** Generación automática de informes en Excel (`.xlsx`) con tablas detalladas para el cuaderno de campo.
 
 ---
 
 ## 📐 Lógica Matemática del Balance
 
-El sistema basa sus decisiones en el siguiente flujo de cálculo secuencial:
-
-1.  **Demanda del Cultivo ($ET_c$):**
+1.  **Demanda del Cultivo (ET<sub>c</sub>):**
     $$ET_c = ET_0 \times K_c$$
-
-2.  **Lluvia Útil ($P_e$ - Método USDA S.C.S.):**
-    Se implementa el algoritmo empírico del *Soil Conservation Service* para estimar la fracción de lluvia que realmente se almacena en la zona radicular, descartando escorrentía superficial y percolación profunda. Se discrimina según la intensidad de la precipitación mensual ($P_{mes}$):
-
-    * **Para precipitaciones bajas/medias ($P_{mes} < 70 \text{ mm}$):**
-        $$P_e = (P_{mes} \times 0.6) - 10$$
-        *(Se asume mayor pérdida proporcional por evaporación superficial)*
-
-    * **Para precipitaciones altas ($P_{mes} \ge 70 \text{ mm}$):**
-        $$P_e = (P_{mes} \times 0.8) - 24$$
-        *(Se asume mayor eficiencia de infiltración, pero mayor pérdida por escorrentía)*
-
-    *> Nota: El sistema aplica un suelo de $0$ ($P_e \ge 0$) para evitar valores negativos en meses muy secos.*
-
-3.  **Necesidad Hídrica Neta ($NH_n$):**
+2.  **Necesidad Hídrica Neta (NH<sub>n</sub>):**
     $$NH_n = Max(0, ET_c - P_e)$$
-
-4.  **Factor de Déficit ($K_s$):**
+3.  **Factor de Déficit (K<sub>s</sub>):**
     $$K_s = \frac{Volumen\ Disponible}{\sum NH_n}$$
-
-5.  **Riego Final Asignado:**
+4.  **Riego Final Asignado:**
     $$Riego = NH_n \times K_s$$
+
 ---
 
 ## 🛠️ Tecnologías y Diseño
 
-* **Frontend:** HTML5, CSS3 (Diseño "Clean Card"), Vanilla JavaScript (ES6+).
+* **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6+).
 * **Motor Gráfico:** Chart.js + Plugin DataLabels (Estilo personalizado con tooltips modernos).
 * **Motor de Datos:** SheetJS (XLSX) para la generación de hojas de cálculo.
-* **UX:** Interfaz reactiva con feedback visual inmediato y validación de datos de entrada.
+* **UI/UX:** Diseño "Clean Card" inspirado en interfaces modernas, con una paleta de colores semántica que diferencia claramente los aportes hídricos naturales de los artificiales.
 
 ---
 
 > **Nota:** Este proyecto ha sido desarrollado siguiendo estrictos criterios agronómicos para ofrecer una herramienta de precisión a técnicos y gestores de fincas.
+> 
+> **Estado del Proyecto:** ✅ Versión Estable 1.0
