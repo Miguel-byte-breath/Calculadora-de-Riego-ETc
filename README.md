@@ -22,13 +22,12 @@ Dado que la gestión agronómica requiere anticiparse a las necesidades de la ca
 
 ### 🥇 3. Balance Hídrico Mensual (Agronómico)
 El núcleo del sistema se basa en la metodología del **Riego Neto**:
-* **Cálculo de ET<sub>c</sub>:** Transformación de la ET<sub>0</sub> climática mediante Coeficientes de Cultivo (**K<sub>c</sub>**) dinámicos para obtener la demanda bruta.
-* **Precipitación Efectiva (P<sub>e</sub>):** Implementación del **Método USDA (SCS)** modificado para calcular la lluvia útil aprovechable por el cultivo:
-    * *Si P < 70mm:* `P<sub>e</sub> = 0.6 · P - 10`
-    * *Si P > 70mm:* `P<sub>e</sub> = 0.8 · P - 24`
-* **Necesidad Neta (NH<sub>n</sub>):** Cálculo del déficit real del cultivo (`ET<sub>c</sub> - P<sub>e</sub>`).
-* **Gestión de Recursos:** Algoritmo de reparto proporcional (Estrategia de Riego Deficitario Controlado) que ajusta la dotación final si el volumen disponible es inferior a la demanda ideal.
-
+* **Cálculo de ET<sub>c</sub>:** Determinación de la Evapotranspiración del cultivo mediante la interacción de la ET<sub>o</sub> climática y Coeficientes de Cultivo (**K<sub>c</sub>**) dinámicos.
+* **Precipitación Efectiva (P<sub>e</sub>):** Implementación del **Método USDA (SCS)** modificado para cuantificar la lluvia útil almacenada en la zona radicular:
+    * *Si P < 70 mm:* **P<sub>e</sub> = 0.6 · P - 10**
+    * *Si P > 70 mm:* **P<sub>e</sub> = 0.8 · P - 24**
+* **Necesidad Hídrica Neta (NH<sub>n</sub>):** Cálculo preciso del déficit real del cultivo resultante del balance hídrico (**ET<sub>c</sub> - P<sub>e</sub>**).
+* **Gestión de Recursos:** Algoritmo de reparto proporcional basado en una **Estrategia de Riego Deficitario Controlado**; este sistema ajusta automáticamente la dotación final cuando el volumen disponible es inferior a la demanda **NH<sub>n</sub>** ideal, optimizando la productividad por m³.
 ### 📅 4. Planificación Operativa Semanal
 * **Flujo Continuo:** Conversión de la planificación mensual a semanas naturales del año (ISO 8601).
 * **Distribución Diaria:** Lógica de interpolación diaria que evita los "escalones" o cortes artificiales entre meses, generando una curva de riego suave, continua y agronómicamente viable.
